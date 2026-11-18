@@ -9,16 +9,16 @@ import './system.css';
 type Patch = Partial<Omit<SettingsData, 'hasClaudeKey' | 'hasOpenAiKey'>>;
 
 const BACKGROUNDS: { value: Background; label: string }[] = [
-  { value: 'mist', label: 'Mist' },
-  { value: 'grid', label: 'Grid' },
-  { value: 'dots', label: 'Dots' },
-  { value: 'grain', label: 'Grain' },
+  { value: 'mist', label: '薄雾' },
+  { value: 'grid', label: '网格' },
+  { value: 'dots', label: '点阵' },
+  { value: 'grain', label: '颗粒' },
 ];
 
 const THEMES: { value: Theme; label: string }[] = [
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
-  { value: 'system', label: 'System' },
+  { value: 'light', label: '浅色' },
+  { value: 'dark', label: '深色' },
+  { value: 'system', label: '跟随系统' },
 ];
 
 const SIZES = ['100', '250', '500', '1000'] as const;
@@ -46,11 +46,11 @@ function KeyRow({ id, name, keyUrl, has }: { id: AiProvider; name: string; keyUr
     setBusy(true);
     try {
       await setApiKey(id, value);
-      toast(value ? `${name} key saved` : `${name} key removed`);
+      toast(value ? `${name} 密钥已保存` : `${name} 密钥已移除`);
       setEditing(false);
       setKey('');
     } catch (e) {
-      toast(e instanceof Error ? e.message : 'Could not update the key', 'err');
+      toast(e instanceof Error ? e.message : '无法更新密钥', 'err');
     } finally {
       setBusy(false);
     }
@@ -64,20 +64,20 @@ function KeyRow({ id, name, keyUrl, has }: { id: AiProvider; name: string; keyUr
         </span>
         <div className="grow">
           <b>{name}</b>
-          <small>{has ? 'Key saved on this computer' : 'No key yet'}</small>
+          <small>{has ? '密钥已保存在此电脑上' : '尚未设置密钥'}</small>
         </div>
-        <span className={`tag${has ? ' safe' : ''}`}>{has ? 'Connected' : 'Not set'}</span>
+        <span className={`tag${has ? ' safe' : ''}`}>{has ? '已连接' : '未设置'}</span>
         {busy && !editing ? (
           <span className="spinner" />
         ) : (
           !editing && (
             <>
               <button type="button" className="btn small" onClick={() => setEditing(true)}>
-                {has ? 'Replace' : 'Add key'}
+                {has ? '更换' : '添加密钥'}
               </button>
               {has && (
                 <button type="button" className="btn small ghost danger" onClick={() => void apply(null)}>
-                  Remove
+                  移除
                 </button>
               )}
             </>
@@ -92,27 +92,27 @@ function KeyRow({ id, name, keyUrl, has }: { id: AiProvider; name: string; keyUr
             autoFocus
             autoComplete="off"
             spellCheck={false}
-            placeholder={`Paste your ${name} key`}
+            placeholder={`粘贴你的 ${name} 密钥`}
             value={key}
             onChange={(e) => setKey(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && key.trim()) void apply(key.trim());
               if (e.key === 'Escape') setEditing(false);
             }}
-            aria-label={`${name} API key`}
+            aria-label={`${name} API 密钥`}
           />
           <button type="button" className="btn small primary" disabled={busy || !key.trim()} onClick={() => void apply(key.trim())}>
-            {busy ? <span className="spinner on-ink" style={{ width: 14, height: 14 }} /> : 'Save'}
+            {busy ? <span className="spinner on-ink" style={{ width: 14, height: 14 }} /> : '保存'}
           </button>
           <button type="button" className="btn small ghost" onClick={() => setEditing(false)} disabled={busy}>
-            Cancel
+            取消
           </button>
           <button
             type="button"
             className="sy-link"
-            onClick={() => api.openExternal(keyUrl).catch(() => toast('Could not open the browser', 'err'))}
+            onClick={() => api.openExternal(keyUrl).catch(() => toast('无法打开浏览器', 'err'))}
           >
-            Get a key
+            获取密钥
             <Icon name="arrow" />
           </button>
         </div>
@@ -130,7 +130,7 @@ export default function Settings() {
     try {
       await updateSettings(patch);
     } catch (e) {
-      toast(e instanceof Error ? e.message : 'Could not save the setting', 'err');
+      toast(e instanceof Error ? e.message : '无法保存设置', 'err');
     } finally {
       setSaving(null);
     }
@@ -141,10 +141,10 @@ export default function Settings() {
   if (!settings) {
     return (
       <div className="screen">
-        <ScreenHead title="Settings" />
+        <ScreenHead title="设置" />
         <div className="card-w sy-center">
           <span className="spinner" />
-          Loading your settings
+          正在加载设置
         </div>
       </div>
     );
@@ -154,7 +154,7 @@ export default function Settings() {
 
   return (
     <div className="screen">
-      <ScreenHead title="Settings" sub="Make Cleanly feel like yours. Changes save right away." />
+      <ScreenHead title="设置" sub="让 Cleanly 更符合你的习惯，更改会立即保存。" />
 
       <div className="sy-settings sy-stagger">
         <section className="card-w panel">
@@ -162,25 +162,25 @@ export default function Settings() {
             <span className="chip-ico">
               <Icon name="layers" />
             </span>
-            <h2>Appearance</h2>
+            <h2>外观</h2>
           </div>
           <div className="sy-opt">
             <div className="grow">
-              <b>Theme</b>
-              <small>{settings.theme === 'system' ? 'Follows your system, light or dark' : `Always ${settings.theme}`}</small>
+              <b>主题</b>
+              <small>{settings.theme === 'system' ? '跟随系统，浅色或深色' : `始终为 ${settings.theme}`}</small>
             </div>
             {spin('theme')}
-            <Segmented<Theme> label="Theme" value={settings.theme} options={THEMES} onChange={(v) => void save('theme', { theme: v })} />
+            <Segmented<Theme> label="主题" value={settings.theme} options={THEMES} onChange={(v) => void save('theme', { theme: v })} />
           </div>
           <div className="sy-opt col">
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div className="grow">
-                <b>Background</b>
-                <small>The canvas behind every screen</small>
+                <b>背景</b>
+                <small>每个界面背后的画布</small>
               </div>
               {spin('background')}
               <Segmented<Background>
-                label="Background"
+                label="背景"
                 value={settings.background}
                 options={BACKGROUNDS}
                 onChange={(v) => void save('background', { background: v })}
@@ -208,37 +208,37 @@ export default function Settings() {
             <span className="chip-ico">
               <Icon name="broom" />
             </span>
-            <h2>Cleaning</h2>
+            <h2>清理</h2>
           </div>
           <div className="sy-opt">
             <div className="grow">
-              <b>Ask before cleaning</b>
-              <small>Show what will be removed and wait for your OK</small>
+              <b>清理前确认</b>
+              <small>显示将被移除的内容并等待你确认</small>
             </div>
             {spin('confirm')}
             <Toggle
               checked={settings.confirmBeforeClean}
-              label="Ask before cleaning"
+              label="清理前确认"
               onChange={(v) => void save('confirm', { confirmBeforeClean: v })}
             />
           </div>
           <div className="sy-opt col">
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div className="grow">
-                <b>Large file size</b>
-                <small>Files bigger than this show up in Large Files</small>
+                <b>大文件阈值</b>
+                <small>超过此大小的文件会显示在“大文件”中</small>
               </div>
               {spin('large')}
             </div>
             <Segmented<SizeOpt>
-              label="Large file size"
+              label="大文件阈值"
               value={sizeValue}
               options={SIZES.map((s) => ({ value: s, label: s === '1000' ? '1 GB' : `${s} MB` }))}
               onChange={(v) => void save('large', { largeFileMinMb: Number(v) })}
             />
           </div>
           <p className="sy-note" style={{ margin: '6px 0 0' }}>
-            Caches and temporary files are deleted for good. Your own files always go to the Trash, so you can restore them.
+            缓存和临时文件会被永久删除。你自己的文件始终会被移到回收站，因此可以随时恢复。
           </p>
         </section>
 
@@ -247,11 +247,11 @@ export default function Settings() {
             <span className="chip-ico">
               <Icon name="assist" />
             </span>
-            <h2>Assistant</h2>
+            <h2>AI 助手</h2>
             <span style={{ flex: 1 }} />
             {spin('provider')}
             <Segmented<AiProvider>
-              label="Assistant provider"
+              label="AI 助手服务商"
               value={settings.aiProvider}
               options={PROVIDERS.map((p) => ({ value: p.id, label: p.name }))}
               onChange={(v) => void save('provider', { aiProvider: v })}
@@ -262,7 +262,7 @@ export default function Settings() {
           ))}
           <p className="sy-privacy" style={{ margin: '8px 0 0' }}>
             <Icon name="shield" />
-            Only file names, paths and sizes are shared — never file contents.
+            仅分享文件名、路径和大小——绝不包含文件内容。
           </p>
         </section>
 
@@ -272,20 +272,20 @@ export default function Settings() {
             <div className="grow">
               <h3>cleanly</h3>
               <p className="mono">
-                {system ? `Version ${system.appVersion} · ${osLabel(system.platform, system.osVersion)} · ${system.arch}` : 'Reading version'}
+                {system ? `版本 ${system.appVersion} · ${osLabel(system.platform, system.osVersion)} · ${system.arch}` : '正在读取版本'}
               </p>
               <span className="sy-love">
                 <Icon name="heart" />
-                Made with care, so your computer stays light.
+                用心打造，让你的电脑保持轻盈。
               </span>
             </div>
             <button type="button" className="btn" onClick={() => go('feedback')}>
               <Icon name="chat" />
-              Send feedback
+              发送反馈
             </button>
             <button type="button" className="btn primary" onClick={() => go('support')}>
               <Icon name="heart" style={{ color: '#ff8fc8' }} />
-              Leave a tip
+              打赏
             </button>
           </div>
         </section>

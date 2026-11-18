@@ -40,8 +40,8 @@ function initialJunk(): JunkCategory[] {
   return [
     {
       id: 'user-temp',
-      name: 'Temporary files',
-      description: 'Leftovers apps write while they run and forget to remove.',
+      name: '临时文件',
+      description: '应用运行期间写下又忘记删除的残留文件。',
       icon: 'clock',
       size: 4.2 * GB,
       count: 2841,
@@ -50,8 +50,8 @@ function initialJunk(): JunkCategory[] {
     },
     {
       id: 'browser-caches',
-      name: 'Browser caches',
-      description: 'Cached pages and images from Chrome and Edge. Sites reload them as needed.',
+      name: '浏览器缓存',
+      description: 'Chrome 和 Edge 缓存的网页与图片。网站需要时会重新加载。',
       icon: 'globe',
       size: 3.4 * GB,
       count: 6,
@@ -63,8 +63,8 @@ function initialJunk(): JunkCategory[] {
     },
     {
       id: 'update-cache',
-      name: 'Windows Update cache',
-      description: 'Installer files for updates that are already applied.',
+      name: 'Windows 更新缓存',
+      description: '已经安装完成的更新所留下的安装包。',
       icon: 'down',
       size: 2.1 * GB,
       count: 37,
@@ -73,8 +73,8 @@ function initialJunk(): JunkCategory[] {
     },
     {
       id: 'crash-reports',
-      name: 'Crash reports',
-      description: 'Error reports and memory dumps from apps that crashed.',
+      name: '崩溃报告',
+      description: '应用崩溃后留下的错误报告和内存转储。',
       icon: 'warning',
       size: 0.4 * GB,
       count: 112,
@@ -83,8 +83,8 @@ function initialJunk(): JunkCategory[] {
     },
     {
       id: 'dev-caches',
-      name: 'Developer caches',
-      description: 'npm, pip and Gradle download caches. Rebuilt on the next install, which takes a while.',
+      name: '开发者缓存',
+      description: 'npm、pip 和 Gradle 的下载缓存。下次安装时会重建，需要多花一点时间。',
       icon: 'code',
       size: 1.6 * GB,
       count: 3,
@@ -93,8 +93,8 @@ function initialJunk(): JunkCategory[] {
     },
     {
       id: 'recycle-bin',
-      name: 'Recycle Bin',
-      description: 'Files you already deleted. Emptying it cannot be undone.',
+      name: '回收站',
+      description: '你已经删除的文件。清空后无法恢复。',
       icon: 'trash',
       size: 1.1 * GB,
       count: 214,
@@ -103,8 +103,8 @@ function initialJunk(): JunkCategory[] {
     },
     {
       id: 'old-downloads',
-      name: 'Old downloads',
-      description: 'Files in Downloads you have not opened in over 90 days. They go to the Recycle Bin.',
+      name: '旧下载文件',
+      description: '下载文件夹中超过 90 天没有打开过的文件。它们会被移到回收站。',
       icon: 'down',
       size: 18.7 * GB,
       count: 146,
@@ -208,7 +208,7 @@ function initialSpaces(): SpaceNode {
       leaf('vs_community_installer_cache.zip', 2.9 * GB, 'file', 'file', 2.9 * GB),
       leaf('project-assets-final.zip', 1.7 * GB, 'file', 'file'),
       leaf('Blender-4.2-windows-x64.msi', 0.36 * GB, 'file', 'file', 0.36 * GB),
-      leaf('Other downloads', 6.9 * GB, 'folder', 'other', 3.94 * GB),
+      leaf('其他下载', 6.9 * GB, 'folder', 'other', 3.94 * GB),
     ], HOME, 18.7 * GB),
     folder('Videos', 'video', [
       leaf('Family trip 2023 - raw.mp4', 4.6 * GB, 'video', 'file'),
@@ -227,7 +227,7 @@ function initialSpaces(): SpaceNode {
       leaf('Backups', 8.7 * GB, 'cloud'),
       leaf('Work', 5.2 * GB, 'folder'),
       leaf('Thesis - all drafts.pdf', 410 * MB, 'doc', 'file'),
-      leaf('Other documents', 2.6 * GB, 'doc', 'other'),
+      leaf('其他文档', 2.6 * GB, 'doc', 'other'),
     ]),
     folder('Music', 'music', [
       leaf('Library', 21.4 * GB, 'music'),
@@ -248,7 +248,7 @@ function initialSpaces(): SpaceNode {
     ]),
     folder('Desktop', 'folder', [
       leaf('Wedding highlights.mp4', 640 * MB, 'video', 'file'),
-      leaf('Other files', 1.1 * GB, 'file', 'other'),
+      leaf('其他文件', 1.1 * GB, 'file', 'other'),
     ]),
   ];
   return {
@@ -293,15 +293,15 @@ function initialDriveD(): SpaceNode {
       ['Epic Games', 'game', 64 * GB],
       ['Installers', 'down', [
         ['Cyberpunk2077_setup_v2.1.exe', 'file', 1.2 * GB, 'file'],
-        ['Other installers', 'down', 3.4 * GB, 'other'],
+        ['其他安装包', 'down', 3.4 * GB, 'other'],
       ]],
     ]],
     ['Media', 'video', [
       ['Movies', 'video', [
         ['Dune Part Two (2024) 2160p.mkv', 'video', 18.6 * GB, 'file'],
-        ['Other movies', 'video', 121 * GB],
+        ['其他影片', 'video', 121 * GB],
       ]],
-      ['Photo archive', 'photo', 88 * GB],
+      ['照片归档', 'photo', 88 * GB],
       ['Wedding highlights.mp4', 'video', 640 * MB, 'file'],
     ]],
     ['Backups', 'cloud', [
@@ -311,7 +311,7 @@ function initialDriveD(): SpaceNode {
     ['Projects', 'code', 18 * GB],
     ['ISO', 'chip', [
       ['Windows Server 2022.iso', 'chip', 4.9 * GB, 'file'],
-      ['Other images', 'chip', 7.1 * GB, 'other'],
+      ['其他镜像', 'chip', 7.1 * GB, 'other'],
     ]],
     ['$RECYCLE.BIN', 'trash', 3.1 * GB, 'folder', 3.1 * GB],
   ]);
@@ -324,13 +324,13 @@ function driveC(home: SpaceNode): SpaceNode {
       ['System32', 'layers', 9.8 * GB],
       ['WinSxS', 'layers', 11.4 * GB],
       ['SoftwareDistribution', 'down', 2.1 * GB, 'folder', 2.1 * GB],
-      ['Other system files', 'layers', 4.6 * GB, 'other'],
+      ['其他系统文件', 'layers', 4.6 * GB, 'other'],
     ]],
     ['Program Files', 'apps', [
       ['NVIDIA Corporation', 'apps', 3.2 * GB],
       ['Docker', 'apps', 2.6 * GB],
       ['Blender Foundation', 'apps', 1.1 * GB],
-      ['Other apps', 'apps', 7.4 * GB, 'other'],
+      ['其他应用', 'apps', 7.4 * GB, 'other'],
     ]],
     ['Program Files (x86)', 'apps', 7.6 * GB],
     ['ProgramData', 'layers', 4.3 * GB],
@@ -353,17 +353,17 @@ function driveC(home: SpaceNode): SpaceNode {
 }
 
 function initialStartup(): StartupItem[] {
-  const reg = 'Registry (current user)';
+  const reg = '注册表（当前用户）';
   return [
     { id: 'discord', name: 'Discord', command: `"${HOME}\\AppData\\Local\\Discord\\Update.exe" --processStart Discord.exe`, location: reg, enabled: true, impact: 'high', canToggle: true, needsAdmin: false },
     { id: 'spotify', name: 'Spotify', command: `"${HOME}\\AppData\\Roaming\\Spotify\\Spotify.exe" --autostart --minimized`, location: reg, enabled: true, impact: 'high', canToggle: true, needsAdmin: false },
-    { id: 'teams', name: 'Microsoft Teams', command: 'ms-teams.exe msteams:system-initiated', location: 'Startup apps (Store)', enabled: true, impact: 'high', canToggle: true, needsAdmin: false },
+    { id: 'teams', name: 'Microsoft Teams', command: 'ms-teams.exe msteams:system-initiated', location: '启动应用（应用商店）', enabled: true, impact: 'high', canToggle: true, needsAdmin: false },
     { id: 'onedrive', name: 'OneDrive', command: `"${HOME}\\AppData\\Local\\Microsoft\\OneDrive\\OneDrive.exe" /background`, location: reg, enabled: true, impact: 'medium', canToggle: true, needsAdmin: false },
     { id: 'steam', name: 'Steam', command: '"C:\\Program Files (x86)\\Steam\\steam.exe" -silent', location: reg, enabled: false, impact: 'medium', canToggle: true, needsAdmin: false },
-    { id: 'adobe-updater', name: 'Adobe Updater', command: '"C:\\Program Files (x86)\\Common Files\\Adobe\\ARM\\1.0\\AdobeARM.exe"', location: 'Registry (all users)', enabled: true, impact: 'low', canToggle: true, needsAdmin: true },
-    { id: 'google-updater', name: 'Google Updater', command: `"${HOME}\\AppData\\Local\\Google\\GoogleUpdater\\updater.exe" --wake`, location: 'Task Scheduler', enabled: true, impact: 'low', canToggle: true, needsAdmin: false },
-    { id: 'edge-update', name: 'Microsoft Edge Update', command: '"C:\\Program Files (x86)\\Microsoft\\EdgeUpdate\\MicrosoftEdgeUpdate.exe" /c', location: 'Task Scheduler', enabled: true, impact: 'low', canToggle: true, needsAdmin: true },
-    { id: 'security-health', name: 'Windows Security notification icon', command: '%windir%\\system32\\SecurityHealthSystray.exe', location: 'Registry (all users)', enabled: true, impact: 'low', canToggle: true, needsAdmin: true },
+    { id: 'adobe-updater', name: 'Adobe Updater', command: '"C:\\Program Files (x86)\\Common Files\\Adobe\\ARM\\1.0\\AdobeARM.exe"', location: '注册表（所有用户）', enabled: true, impact: 'low', canToggle: true, needsAdmin: true },
+    { id: 'google-updater', name: 'Google Updater', command: `"${HOME}\\AppData\\Local\\Google\\GoogleUpdater\\updater.exe" --wake`, location: '任务计划程序', enabled: true, impact: 'low', canToggle: true, needsAdmin: false },
+    { id: 'edge-update', name: 'Microsoft Edge Update', command: '"C:\\Program Files (x86)\\Microsoft\\EdgeUpdate\\MicrosoftEdgeUpdate.exe" /c', location: '任务计划程序', enabled: true, impact: 'low', canToggle: true, needsAdmin: true },
+    { id: 'security-health', name: 'Windows 安全中心通知图标', command: '%windir%\\system32\\SecurityHealthSystray.exe', location: '注册表（所有用户）', enabled: true, impact: 'low', canToggle: true, needsAdmin: true },
   ];
 }
 
@@ -464,8 +464,8 @@ export function createMockApi(): CleanlyApi {
     homeDir: HOME,
   };
 
-  const disk = (): DiskInfo => ({ mount: 'C:\\', label: 'Disk C:', total, used, free: total - used, system: true });
-  const diskD = (): DiskInfo => ({ mount: D, label: 'Data D:', total: totalD, used: usedD, free: totalD - usedD, system: false });
+  const disk = (): DiskInfo => ({ mount: 'C:\\', label: '本地磁盘 C:', total, used, free: total - used, system: true });
+  const diskD = (): DiskInfo => ({ mount: D, label: '数据盘 D:', total: totalD, used: usedD, free: totalD - usedD, system: false });
 
   /** Steps through phases with small pauses, emitting progress as it goes. */
   async function walk(task: ScanProgress['task'], phases: { phase: string; current?: string }[], totalMs: number) {
@@ -474,7 +474,7 @@ export function createMockApi(): CleanlyApi {
       emit({ task, phase: phases[i].phase, done: i, total: phases.length, current: phases[i].current });
       await new Promise((r) => setTimeout(r, step * (0.7 + Math.random() * 0.6)));
     }
-    emit({ task, phase: 'Done', done: phases.length, total: phases.length });
+    emit({ task, phase: '完成', done: phases.length, total: phases.length });
   }
 
   function sizeOf(path: string): number {
@@ -510,7 +510,7 @@ export function createMockApi(): CleanlyApi {
     },
 
     async fileIcons(paths) {
-      if (!Array.isArray(paths)) throw new Error('Expected a list of paths');
+      if (!Array.isArray(paths)) throw new Error('需要路径列表');
       await wait(20, 60);
       // no real icons in a browser; screens fall back to their glyphs
       return {};
@@ -540,12 +540,12 @@ export function createMockApi(): CleanlyApi {
           // a few temp files are always held open by running apps
           failed += 14;
           bytes -= 38 * MB;
-          skipped.push('14 temporary files are in use and were skipped');
+          skipped.push('14 个临时文件正在使用中，已跳过');
         }
         freed += bytes;
         removed += c.count;
       }
-      emit({ task: 'clean', phase: 'Done', done: picked.length, total: picked.length });
+      emit({ task: 'clean', phase: '完成', done: picked.length, total: picked.length });
       junk = junk.map((c) => (ids.includes(c.id) ? { ...c, size: 0, count: 0 } : c));
       used = Math.max(0, used - freed);
       const appData = tree.children?.find((c) => c.name === 'AppData');
@@ -569,25 +569,25 @@ export function createMockApi(): CleanlyApi {
     },
 
     async scanSpaces(root) {
-      if (root !== undefined && typeof root !== 'string') throw new Error('Unknown location');
+      if (root !== undefined && typeof root !== 'string') throw new Error('未知位置');
       const key = root?.replace(/[\\/]+$/, '').toUpperCase();
       const target = key === undefined ? tree : key === 'C:' ? driveC(clone(tree)) : key === 'D:' ? treeD : null;
-      if (!target) throw new Error('That drive is not available');
+      if (!target) throw new Error('该磁盘不可用');
       await walk(
         'spaces',
-        (target.children ?? []).map((c) => ({ phase: `Measuring ${c.name}`, current: c.path })),
+        (target.children ?? []).map((c) => ({ phase: `正在测量 ${c.name}`, current: c.path })),
         key ? 3400 : 2600,
       );
       return clone(target);
     },
 
     async scanLargeFiles(minBytes) {
-      await walk('large', [{ phase: 'Downloads' }, { phase: 'Videos' }, { phase: 'Documents' }, { phase: 'Pictures' }, { phase: 'Everything else' }, { phase: 'Drive D:', current: D }], 1800);
+      await walk('large', [{ phase: '下载' }, { phase: '视频' }, { phase: '文档' }, { phase: '图片' }, { phase: '其他位置' }, { phase: 'D 盘', current: D }], 1800);
       return clone(large.filter((f) => f.size >= minBytes).sort((a, b) => b.size - a.size));
     },
 
     async scanDuplicates() {
-      await walk('dupes', [{ phase: 'Listing files' }, { phase: 'Grouping by size' }, { phase: 'Comparing contents' }], 1800);
+      await walk('dupes', [{ phase: '正在列出文件' }, { phase: '正在按大小分组' }, { phase: '正在比较内容' }], 1800);
       return clone(dupes.filter((g) => g.files.length > 1));
     },
 
@@ -613,7 +613,7 @@ export function createMockApi(): CleanlyApi {
         }
       }
       const failed = paths.length - removed;
-      return { freed, removed, failed, skipped: failed ? [`${failed} item${failed === 1 ? ' was' : 's were'} not found`] : [] };
+      return { freed, removed, failed, skipped: failed ? [`${failed} 个项目未找到`] : [] };
     },
 
     async revealPath() {
@@ -627,8 +627,8 @@ export function createMockApi(): CleanlyApi {
 
     async setStartupItem(id, enabled) {
       const item = startup.find((s) => s.id === id);
-      if (!item) throw new Error('That startup item no longer exists');
-      if (!item.canToggle) throw new Error(`${item.name} is managed by Windows and cannot be changed here`);
+      if (!item) throw new Error('该启动项已不存在');
+      if (!item.canToggle) throw new Error(`${item.name} 由 Windows 管理，无法在此更改`);
       // stands in for the administrator prompt
       await (item.needsAdmin ? wait(900, 1400) : wait(300, 700));
       startup = startup.map((s) => (s.id === id ? { ...s, enabled } : s));
@@ -636,18 +636,18 @@ export function createMockApi(): CleanlyApi {
     },
 
     async installedApps() {
-      await walk('apps', [{ phase: 'Reading installed programs' }, { phase: 'Measuring sizes' }], 1100);
+      await walk('apps', [{ phase: '正在读取已安装程序' }, { phase: '正在统计大小' }], 1100);
       return clone(apps);
     },
 
     async uninstallApp(id) {
       await wait(800, 1200);
       const app = apps.find((a) => a.id === id);
-      if (!app) return { ok: false, message: 'That app is no longer installed' };
-      if (!app.canUninstall) return { ok: false, message: `${app.name} is part of Windows and cannot be removed here` };
+      if (!app) return { ok: false, message: '该应用已卸载' };
+      if (!app.canUninstall) return { ok: false, message: `${app.name} 是 Windows 的一部分，无法在此卸载` };
       apps = apps.filter((a) => a.id !== id);
       if (app.size) used = Math.max(0, used - app.size);
-      return { ok: true, message: `${app.name} was uninstalled` };
+      return { ok: true, message: `${app.name} 已卸载` };
     },
 
     async protection() {
@@ -660,7 +660,7 @@ export function createMockApi(): CleanlyApi {
         definitionsUpdated: now - 5 * HOUR,
         lastScan: now - 2 * DAY,
         score: 92,
-        notes: ['Real-time protection is on', 'Virus definitions are up to date', 'Last quick scan ran 2 days ago'],
+        notes: ['实时防护已开启', '病毒库已更新', '上次快速扫描在 2 天前完成'],
       };
       return status;
     },
@@ -690,17 +690,17 @@ export function createMockApi(): CleanlyApi {
       const gb = (n: number) => `${(n / GB).toFixed(1)} GB`;
       const junkTotal = safeJunk.reduce((a, j) => a + j.size, 0);
       const parts: string[] = [];
-      if (question.trim()) parts.push(`Here is what I would do about "${question.trim().slice(0, 80)}".`);
-      if (junkTotal > 0) parts.push(`Caches and temporary files add up to ${gb(junkTotal)}. Apps rebuild them on their own, so clearing them is safe.`);
-      if (bigOnes.length) parts.push(`Your biggest single files are installers and disk images you have not opened in months. Check them before removing; they go to the Recycle Bin first.`);
-      if (context.disk) parts.push(`After that you would have about ${gb(context.disk.free + junkTotal)} free.`);
-      parts.push('Leave AppData\\Roaming and anything under Documents alone unless you know what it is.');
+      if (question.trim()) parts.push(`关于「${question.trim().slice(0, 80)}」，我会这样处理。`);
+      if (junkTotal > 0) parts.push(`缓存和临时文件合计 ${gb(junkTotal)}。应用会自行重建，清理它们是安全的。`);
+      if (bigOnes.length) parts.push('最大的几个单文件是几个月没有打开的安装包和磁盘镜像。删除前请先确认；它们会先进入回收站。');
+      if (context.disk) parts.push(`这样之后大约会释放出 ${gb(context.disk.free + junkTotal)}。`);
+      parts.push('请勿动 AppData\\Roaming 和「文档」下的内容，除非你清楚它是什么。');
       const advice: AiAdvice = {
         answer: parts.join(' '),
         suggestions: [
-          ...safeJunk.slice(0, 3).map((j) => ({ path: j.locations[0] ?? j.name, verdict: 'safe' as const, reason: `${j.name}: regenerated automatically` })),
-          ...bigOnes.map((f) => ({ path: f.path, verdict: 'review' as const, reason: `${gb(f.size)}, last changed ${Math.round((now - f.modified) / DAY)} days ago` })),
-          { path: tilde(join(HOME, 'Documents')), verdict: 'keep' as const, reason: 'Your own work. Only remove files you recognize.' },
+          ...safeJunk.slice(0, 3).map((j) => ({ path: j.locations[0] ?? j.name, verdict: 'safe' as const, reason: `${j.name}：会自动重建` })),
+          ...bigOnes.map((f) => ({ path: f.path, verdict: 'review' as const, reason: `${gb(f.size)}，最后修改于 ${Math.round((now - f.modified) / DAY)} 天前` })),
+          { path: tilde(join(HOME, 'Documents')), verdict: 'keep' as const, reason: '这是你自己的文件。只删除你认得的文件。' },
         ],
         provider: settings.aiProvider,
       };
@@ -711,7 +711,7 @@ export function createMockApi(): CleanlyApi {
       await wait(300, 700);
       const profile: TipsProfile = {
         name: 'Beyond Apps',
-        tagline: 'Small, honest apps without ads',
+        tagline: '小而诚实的应用，没有广告',
         currency: 'usd',
         presets: [5, 10, 25, 50],
         min: 1,
@@ -722,7 +722,7 @@ export function createMockApi(): CleanlyApi {
     },
 
     async startTip(req) {
-      if (!Number.isFinite(req.amount) || req.amount < 1 || req.amount > 1000) throw new Error('Choose an amount between $1 and $1,000');
+      if (!Number.isFinite(req.amount) || req.amount < 1 || req.amount > 1000) throw new Error('请选择 1 到 1000 美元之间的金额');
       await wait(500, 900);
       const url = 'https://beyond-media.ai/tips?creator=beyond-apps';
       window.open(url, '_blank', 'noopener,noreferrer');
@@ -730,9 +730,9 @@ export function createMockApi(): CleanlyApi {
     },
 
     async sendFeedback(payload) {
-      if (payload.message.trim().length < 3) throw new Error('Please write a few more words');
+      if (payload.message.trim().length < 3) throw new Error('请多写几个字');
       await wait(600, 1100);
-      const result: FeedbackResult = { ok: true, via: 'saved', message: 'Demo mode: your note was kept in this browser tab only.' };
+      const result: FeedbackResult = { ok: true, via: 'saved', message: '演示模式：你的留言仅保存在当前浏览器标签页中。' };
       return result;
     },
 

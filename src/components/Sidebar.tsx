@@ -5,17 +5,17 @@ import { BrandMark, Icon } from './Icon';
 import '../screens/files.css';
 
 const MAIN: { id: Screen; label: string; icon: IconName }[] = [
-  { id: 'scan', label: 'Smart Scan', icon: 'scan' },
-  { id: 'cleanup', label: 'Cleanup', icon: 'broom' },
-  { id: 'protection', label: 'Protection', icon: 'shield' },
-  { id: 'speed', label: 'Speed', icon: 'gauge' },
-  { id: 'apps', label: 'Applications', icon: 'apps' },
+  { id: 'scan', label: '智能扫描', icon: 'scan' },
+  { id: 'cleanup', label: '清理', icon: 'broom' },
+  { id: 'protection', label: '防护', icon: 'shield' },
+  { id: 'speed', label: '加速', icon: 'gauge' },
+  { id: 'apps', label: '应用', icon: 'apps' },
 ];
 const FILES: { id: Screen; label: string; icon: IconName }[] = [
-  { id: 'spaces', label: 'Space Map', icon: 'bubbles' },
-  { id: 'large', label: 'Large Files', icon: 'file' },
-  { id: 'dupes', label: 'Duplicates', icon: 'dupes' },
-  { id: 'assistant', label: 'Assistant', icon: 'assist' },
+  { id: 'spaces', label: '空间地图', icon: 'bubbles' },
+  { id: 'large', label: '大文件', icon: 'file' },
+  { id: 'dupes', label: '重复文件', icon: 'dupes' },
+  { id: 'assistant', label: 'AI 助手', icon: 'assist' },
 ];
 
 export function Sidebar() {
@@ -34,15 +34,15 @@ export function Sidebar() {
   const many = drives.length > 1;
 
   const note = !sys
-    ? 'Measuring…'
+    ? '正在测量…'
     : reclaimable > 0
-      ? `${formatBytes(reclaimable)} can be reclaimed${many ? ` on ${driveName(sys)}` : ''}`
+      ? `可回收 ${formatBytes(reclaimable)}${many ? `（位于 ${driveName(sys)}）` : ''}`
       : many
-        ? `${formatBytes(drives.reduce((a, d) => a + d.free, 0))} free on ${drives.length} drives`
-        : `${formatBytes(sys.free)} free`;
+        ? `${drives.length} 个磁盘剩余 ${formatBytes(drives.reduce((a, d) => a + d.free, 0))}`
+        : `剩余 ${formatBytes(sys.free)}`;
 
   return (
-    <nav className="nav rise" aria-label="Sections">
+    <nav className="nav rise" aria-label="导航分区">
       {/* dark theme: the sidebar is a floating panel that reaches under the title bar; this keeps that strip draggable */}
       <div className="nav-drag" aria-hidden="true" />
       <div className="brand">
@@ -50,7 +50,7 @@ export function Sidebar() {
         <span className="brand-name">cleanly</span>
       </div>
       {MAIN.map(item)}
-      <div className="nav-label">FILES</div>
+      <div className="nav-label">文件</div>
       {FILES.map(item)}
 
       <div className="nav-foot">
@@ -61,7 +61,7 @@ export function Sidebar() {
                 const usedPct = d.total > 0 ? Math.min(100, (d.used / d.total) * 100) : 0;
                 const junkPct = d.mount === sys?.mount && d.total > 0 ? Math.min(usedPct, (reclaimable / d.total) * 100) : 0;
                 return (
-                  <div key={d.mount} className="drv" title={`${d.label}: ${formatBytes(d.free)} free of ${formatBytes(d.total)}`}>
+                  <div key={d.mount} className="drv" title={`${d.label}：${formatBytes(d.free)} / 共 ${formatBytes(d.total)}`}>
                     <div className="disk-row">
                       <span>{d.label}</span>
                       <span>
@@ -78,7 +78,7 @@ export function Sidebar() {
             ) : (
               <div className="drv">
                 <div className="disk-row">
-                  <span>Disk</span>
+                  <span>磁盘</span>
                   <span>…</span>
                 </div>
                 <div className="bar" />
@@ -88,15 +88,15 @@ export function Sidebar() {
           <div className="disk-note">{note}</div>
         </div>
         <div className="nav-mini">
-          <button type="button" className={`nav-item${screen === 'support' ? ' on' : ''}`} onClick={() => go('support')} title="Support Cleanly">
+          <button type="button" className={`nav-item${screen === 'support' ? ' on' : ''}`} onClick={() => go('support')} title="支持 Cleanly">
             <Icon name="heart" />
-            Tip
+            打赏
           </button>
-          <button type="button" className={`nav-item${screen === 'feedback' ? ' on' : ''}`} onClick={() => go('feedback')} title="Send feedback">
+          <button type="button" className={`nav-item${screen === 'feedback' ? ' on' : ''}`} onClick={() => go('feedback')} title="发送反馈">
             <Icon name="chat" />
-            Feedback
+            反馈
           </button>
-          <button type="button" className={`nav-item${screen === 'settings' ? ' on' : ''}`} onClick={() => go('settings')} aria-label="Settings" title="Settings" style={{ flex: '0 0 40px', padding: 0 }}>
+          <button type="button" className={`nav-item${screen === 'settings' ? ' on' : ''}`} onClick={() => go('settings')} aria-label="设置" title="设置" style={{ flex: '0 0 40px', padding: 0 }}>
             <Icon name="gear" />
           </button>
         </div>

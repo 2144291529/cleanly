@@ -1,5 +1,6 @@
-import './boot';
+import { perfMark } from './boot';
 import { app, BrowserWindow, ipcMain, nativeTheme, shell } from 'electron';
+import { existsSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,7 +32,40 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const devServer = process.env.VITE_DEV_SERVER_URL;
 let win: BrowserWindow | null = null;
 
-const progress = (p: ScanProgress) => win?.webContents.send(PROGRESS_CHANNEL, p);
+// Truly portable: when the app runs from the single-file portable launcher, or from a "green" folder
+// that carries a `portable.flag` next to Cleanly.exe, keep settings and keys beside the executable
+// instead of in %APPDATA%. Must happen before anything reads app.getPath('userData').
+const exeDir = path.dirname(app.getPath('exe'));
+const portableDir = process.env.PORTABLE_EXECUTABLE_DIR
+  || (existsSync(path.join(exeDir, 'portable.flag')) ? exeDir : '');
+if (portableDir) {
+  try {
+    app.setPath('userData', path.join(portableDir, 'CleanlyData'));
+  } catch {
+    // keep the default location if the folder is read-only
+  }
+}
+
+// Throttle progress IPC: the walkers tick every ~120ms across several categories, and forwarding
+// every tick to the renderer used to flood the main thread during startup. Cap at ~15 Hz; the final
+// message of each task always passes so the UI never gets stuck mid-progress.
+let lastProgressAt = 0;
+let lastProgressTask = '';
+let lastProgressPhase = '';
+const progress = (p: ScanProgress) => {
+  if (!win || win.isDestroyed()) return;
+  if (p.phase !== lastProgressPhase || p.task !== lastProgressTask) {
+    perfMark(`scan:${p.task}:${p.phase}`);
+    lastProgressPhase = p.phase;
+  }
+  const now = Date.now();
+  const isFinal = p.phase === 'Done' || p.phase === '完成' || (p.total > 0 && p.done >= p.total);
+  const taskChanged = p.task !== lastProgressTask;
+  if (!isFinal && !taskChanged && now - lastProgressAt < 66) return;
+  lastProgressAt = now;
+  lastProgressTask = p.task;
+  win.webContents.send(PROGRESS_CHANNEL, p);
+};
 
 // Window chrome per resolved theme: the paper colour behind the page and the Windows caption glyphs.
 const CHROME = {
@@ -91,20 +125,39 @@ function isAppUrl(url: string): boolean {
 
 /** Local absolute paths only. A UNC path (\\host\share) would make Explorer contact that host. */
 function revealablePath(p: unknown): string {
-  if (typeof p !== 'string' || p.length === 0 || p.length > 4096 || p.includes('\0')) throw new Error('That item cannot be shown');
+  if (typeof p !== 'string' || p.length === 0 || p.length > 4096 || p.includes('\0')) throw new Error('该项目无法显示');
   let abs = p;
   if (abs === '~' || abs.startsWith('~/') || abs.startsWith('~\\')) abs = path.join(os.homedir(), abs.slice(1));
-  if (/^[\\/]{2}/.test(abs) || !path.isAbsolute(abs)) throw new Error('That item cannot be shown');
-  if (process.platform === 'win32' && !/^[a-zA-Z]:[\\/]/.test(abs)) throw new Error('That item cannot be shown');
+  if (/^[\\/]{2}/.test(abs) || !path.isAbsolute(abs)) throw new Error('该项目无法显示');
+  if (process.platform === 'win32' && !/^[a-zA-Z]:[\\/]/.test(abs)) throw new Error('该项目无法显示');
   return path.resolve(abs);
 }
 
 type Handlers = Omit<CleanlyApi, 'onProgress'>;
 
+// Short-lived in-memory cache for expensive OS queries (WMI / registry). These values change slowly;
+// the startup screen and their own pages can request the same data within seconds. Sharing one in-flight
+// promise and caching the result avoids spawning multiple PowerShell processes and cutting the first paint short.
+const TTL_MS = 30_000;
+function cached<T>(fn: () => Promise<T>): () => Promise<T> {
+  let value: T | undefined;
+  let at = 0;
+  let inflight: Promise<T> | null = null;
+  return () => {
+    if (inflight) return inflight;
+    if (value !== undefined && Date.now() - at < TTL_MS) return Promise.resolve(value);
+    inflight = fn().then(
+      (v) => { value = v; at = Date.now(); inflight = null; return v; },
+      (e) => { inflight = null; throw e; },
+    );
+    return inflight;
+  };
+}
+
 const handlers: Handlers = {
   system: async () => systemInfo(),
-  disk: () => getDisk(),
-  disks: () => listDisks(),
+  disk: cached(() => getDisk()),
+  disks: cached(() => listDisks()),
   fileIcons: (paths) => getFileIcons(paths),
   scanJunk: () => scanJunk(progress),
   cleanJunk: (ids) => cleanJunk(ids, progress),
@@ -115,11 +168,11 @@ const handlers: Handlers = {
   revealPath: async (p) => {
     shell.showItemInFolder(revealablePath(p));
   },
-  startupItems: () => listStartup(),
+  startupItems: cached(() => listStartup()),
   setStartupItem: (id, enabled) => setStartup(id, enabled),
-  installedApps: () => listApps(),
+  installedApps: cached(() => listApps()),
   uninstallApp: (id) => uninstallApp(id),
-  protection: () => getProtection(),
+  protection: cached(() => getProtection()),
   getSettings: () => getSettings(),
   setSettings: async (patch) => {
     const next = await setSettings(patch);
@@ -140,6 +193,7 @@ const handlers: Handlers = {
   },
 };
 
+const TRACKED = new Set<string>(['system', 'disk', 'disks', 'scanJunk', 'scanSpaces', 'cleanJunk', 'installedApps', 'startupItems', 'protection']);
 function registerIpc() {
   for (const method of API_METHODS) {
     ipcMain.handle(channelFor(method), (event, ...args: unknown[]) => {
@@ -147,7 +201,16 @@ function registerIpc() {
       const from = event.senderFrame?.url ?? '';
       if (!isAppUrl(from)) throw new Error('Blocked IPC from an untrusted frame');
       const fn = handlers[method] as (...a: unknown[]) => unknown;
-      return fn(...args);
+      const track = TRACKED.has(method);
+      if (track) perfMark(`ipc:${method}:start`);
+      const result = fn(...args);
+      if (track && result && typeof (result as Promise<unknown>).then === 'function') {
+        return Promise.resolve(result).then(
+          (v) => { perfMark(`ipc:${method}:end`); return v; },
+          (e) => { perfMark(`ipc:${method}:end`); throw e; },
+        );
+      }
+      return result;
     });
   }
 }
@@ -175,7 +238,10 @@ function createWindow() {
     },
   });
 
-  win.once('ready-to-show', () => win?.show());
+  win.once('ready-to-show', () => {
+    perfMark('ready-to-show');
+    win?.show();
+  });
   win.on('closed', () => {
     win = null;
   });
@@ -204,12 +270,16 @@ if (!app.requestSingleInstanceLock()) {
   });
 
   app.whenReady().then(async () => {
+    perfMark('app-ready');
     // before the first window, so it opens in the right colours without a flash
     const saved = await getSettings().catch(() => null);
+    perfMark('settings-loaded');
     nativeTheme.themeSource = saved?.theme ?? 'system';
     nativeTheme.on('updated', syncChrome);
     registerIpc();
+    perfMark('ipc-registered');
     createWindow();
+    perfMark('window-created');
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });

@@ -53,7 +53,7 @@ function ScoreRing({ score, level }: { score: number; level: Level }) {
 
   const c = SIZE / 2;
   return (
-    <div className={`sy-ring is-${level}`} role="img" aria-label={`Protection score ${clamped} out of 100`}>
+    <div className={`sy-ring is-${level}`} role="img" aria-label={`安全防护评分 ${clamped}（满分 100）`}>
       <span className="sy-ring-glow" aria-hidden="true" />
       <svg viewBox={`0 0 ${SIZE} ${SIZE}`} width={SIZE} height={SIZE} aria-hidden="true">
         <defs>
@@ -96,10 +96,10 @@ function ScoreRing({ score, level }: { score: number; level: Level }) {
 
 type Tri = 'on' | 'off' | 'unknown';
 
-function triTag(v: Tri, labels: [string, string] = ['On', 'Off']) {
+function triTag(v: Tri, labels: [string, string] = ['已启用', '已禁用']) {
   if (v === 'on') return <span className="tag sy-on">{labels[0]}</span>;
   if (v === 'off') return <span className="tag sy-offt">{labels[1]}</span>;
-  return <span className="tag">Unknown</span>;
+  return <span className="tag">未知</span>;
 }
 
 const tri = (b: boolean | null): Tri => (b === null ? 'unknown' : b ? 'on' : 'off');
@@ -117,7 +117,7 @@ export default function Protection() {
       setStatus(await api.protection());
     } catch (e) {
       setFailed(true);
-      toast(e instanceof Error ? e.message : 'Could not check protection', 'err');
+      toast(e instanceof Error ? e.message : '无法检查安全防护', 'err');
     } finally {
       setLoading(false);
     }
@@ -128,7 +128,7 @@ export default function Protection() {
   }, [load]);
 
   const head = (
-    <ScreenHead title="Protection" sub="A quick look at the security your system already has built in." />
+    <ScreenHead title="安全防护" sub="快速查看系统内置的安全防护状况。" />
   );
 
   if (!status) {
@@ -139,12 +139,12 @@ export default function Protection() {
           {loading || !failed ? (
             <div className="sy-center">
               <span className="spinner" />
-              Checking your protection
+              正在检查您的安全防护
             </div>
           ) : (
-            <Empty icon="warning" title="Could not check protection" text="Something blocked the check. Try again in a moment.">
+            <Empty icon="warning" title="无法检查安全防护" text="检查过程受到阻碍，请稍后重试。">
               <button type="button" className="btn" onClick={() => void load()}>
-                Try again
+                重试
               </button>
             </Empty>
           )}
@@ -160,47 +160,47 @@ export default function Protection() {
   const level: Level = issues === 0 && status.score >= 80 ? 'good' : !status.enabled || issues > 1 ? 'bad' : 'warn';
 
   const facts: { label: string; state: Tri }[] = [
-    { label: status.enabled ? 'Antivirus on' : 'Antivirus off', state: status.enabled ? 'on' : 'off' },
+    { label: status.enabled ? '杀毒软件已启用' : '杀毒软件已禁用', state: status.enabled ? 'on' : 'off' },
   ];
-  if (status.realtime !== null) facts.push({ label: `Real-time ${status.realtime ? 'on' : 'off'}`, state: tri(status.realtime) });
-  if (status.firewall !== null) facts.push({ label: `Firewall ${status.firewall ? 'on' : 'off'}`, state: tri(status.firewall) });
-  if (status.definitionsUpdated) facts.push({ label: `Updated ${timeAgo(status.definitionsUpdated, now)}`, state: defsFresh });
+  if (status.realtime !== null) facts.push({ label: `实时防护${status.realtime ? '已启用' : '已禁用'}`, state: tri(status.realtime) });
+  if (status.firewall !== null) facts.push({ label: `防火墙${status.firewall ? '已启用' : '已禁用'}`, state: tri(status.firewall) });
+  if (status.definitionsUpdated) facts.push({ label: `更新于 ${timeAgo(status.definitionsUpdated, now)}`, state: defsFresh });
 
   const rows: { icon: IconName; label: string; detail: string; state: Tri; tag: ReactNode }[] = [
     {
       icon: 'shield',
-      label: 'Antivirus',
+      label: '杀毒软件',
       detail: status.provider,
       state: status.enabled ? 'on' : 'off',
       tag: triTag(status.enabled ? 'on' : 'off'),
     },
     {
       icon: 'spark',
-      label: 'Real-time protection',
-      detail: 'Checks files the moment they are opened or downloaded',
+      label: '实时防护',
+      detail: '在文件被打开或下载时进行检查',
       state: tri(status.realtime),
       tag: triTag(tri(status.realtime)),
     },
     {
       icon: 'globe',
-      label: 'Firewall',
-      detail: 'Blocks unwanted network connections',
+      label: '防火墙',
+      detail: '阻止不需要的网络连接',
       state: tri(status.firewall),
       tag: triTag(tri(status.firewall)),
     },
     {
       icon: 'clock',
-      label: 'Definitions updated',
-      detail: status.definitionsUpdated ? timeAgo(status.definitionsUpdated, now) : 'Not reported by your system',
+      label: '病毒库已更新',
+      detail: status.definitionsUpdated ? timeAgo(status.definitionsUpdated, now) : '系统未提供信息',
       state: defsFresh,
-      tag: triTag(defsFresh, ['Up to date', 'Out of date']),
+      tag: triTag(defsFresh, ['已是最新', '已过期']),
     },
     {
       icon: 'scan',
-      label: 'Last scan',
-      detail: status.lastScan ? timeAgo(status.lastScan, now) : 'Not reported by your system',
+      label: '最近扫描',
+      detail: status.lastScan ? timeAgo(status.lastScan, now) : '系统未提供信息',
       state: scanFresh,
-      tag: triTag(scanFresh, ['Recent', 'A while ago']),
+      tag: triTag(scanFresh, ['最近', '较久之前']),
     },
   ];
 
@@ -216,10 +216,10 @@ export default function Protection() {
           <div className="sy-hero-text">
             <span className={`eyebrow${level === 'warn' ? ' sy-warn' : level === 'bad' ? ' sy-bad' : ''}`}>
               <span className="dot" />
-              {level === 'good' ? 'You are protected' : level === 'warn' ? 'Mostly protected' : 'Needs attention'}
+              {level === 'good' ? '受到保护' : level === 'warn' ? '基本受到保护' : '需要关注'}
             </span>
             <h2>{status.provider}</h2>
-            <ul className="sy-facts" aria-label="Summary">
+            <ul className="sy-facts" aria-label="概览">
               {facts.map((f) => (
                 <li key={f.label} className={`is-${f.state}`}>
                   <i />
@@ -228,12 +228,11 @@ export default function Protection() {
               ))}
             </ul>
             <p>
-              Cleanly does not replace your antivirus. It checks that the protection built into your system is switched on and up to date,
-              and tells you plainly when something is off.
+              Cleanly 不会取代您的杀毒软件。它会检查系统内置的安全防护是否已开启、是否保持最新，并在发现异常时如实告知您。
             </p>
             <button type="button" className="btn" onClick={() => void load()} disabled={loading}>
               {loading ? <span className="spinner" /> : <Icon name="history" />}
-              {loading ? 'Checking' : 'Check again'}
+              {loading ? '检查中' : '重新检查'}
             </button>
           </div>
         </div>
@@ -241,9 +240,9 @@ export default function Protection() {
 
       <section className="card-w panel rise" style={{ animationDelay: '0.12s' }}>
         <div className="sy-sec-head">
-          <h2>Status</h2>
+          <h2>状态</h2>
           <span className="grow" />
-          <span className={`sy-count${issues ? ' sy-count-warn' : ''}`}>{issues === 0 ? 'All good' : `${issues} to look at`}</span>
+          <span className={`sy-count${issues ? ' sy-count-warn' : ''}`}>{issues === 0 ? '一切正常' : `${issues} 项需要查看`}</span>
         </div>
         <div className="list sy-status">
           {rows.map((r) => (
@@ -266,7 +265,7 @@ export default function Protection() {
       {status.notes.length > 0 && (
         <section className="card-w panel rise" style={{ animationDelay: '0.18s' }}>
           <div className="sy-sec-head">
-            <h2>Notes</h2>
+            <h2>备注</h2>
           </div>
           <ul className="sy-notes">
             {status.notes.map((n, i) => (

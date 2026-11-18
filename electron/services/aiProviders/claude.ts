@@ -26,16 +26,16 @@ const ADVICE_SCHEMA = {
 } as const;
 
 function friendlyError(err: unknown): Error {
-  if (err instanceof Anthropic.AuthenticationError) return new Error('Your Claude API key was rejected. Check it in Settings.');
-  if (err instanceof Anthropic.PermissionDeniedError) return new Error('Your Claude API key does not have access to this model.');
-  if (err instanceof Anthropic.RateLimitError) return new Error('Claude is getting too many requests right now. Wait a minute and try again.');
-  if (err instanceof Anthropic.APIConnectionTimeoutError) return new Error('Claude took too long to answer. Please try again.');
-  if (err instanceof Anthropic.APIConnectionError) return new Error('Could not reach Claude. Check your internet connection.');
-  if (err instanceof Anthropic.BadRequestError) return new Error('Claude could not process this request. Try a shorter question.');
-  if (err instanceof Anthropic.InternalServerError) return new Error('Claude is having trouble right now. Please try again shortly.');
-  if (err instanceof Anthropic.APIError) return new Error(`Claude returned an error${err.status ? ` (${err.status})` : ''}. Please try again.`);
-  if (err instanceof Anthropic.AnthropicError) return new Error('Claude sent an answer Cleanly could not read. Please try again.');
-  return err instanceof Error ? err : new Error('Something went wrong talking to Claude.');
+  if (err instanceof Anthropic.AuthenticationError) return new Error('你的 Claude API 密钥被拒绝，请在设置中检查。');
+  if (err instanceof Anthropic.PermissionDeniedError) return new Error('你的 Claude API 密钥无权访问此模型。');
+  if (err instanceof Anthropic.RateLimitError) return new Error('Claude 当前收到的请求过多，请稍等片刻后重试。');
+  if (err instanceof Anthropic.APIConnectionTimeoutError) return new Error('Claude 回复超时，请重试。');
+  if (err instanceof Anthropic.APIConnectionError) return new Error('无法连接到 Claude，请检查网络连接。');
+  if (err instanceof Anthropic.BadRequestError) return new Error('Claude 无法处理此请求，请尝试更简短的问题。');
+  if (err instanceof Anthropic.InternalServerError) return new Error('Claude 目前出现问题，请稍后重试。');
+  if (err instanceof Anthropic.APIError) return new Error(`Claude 返回了错误${err.status ? ` (${err.status})` : ''}，请重试。`);
+  if (err instanceof Anthropic.AnthropicError) return new Error('Claude 返回的回复 Cleanly 无法读取，请重试。');
+  return err instanceof Error ? err : new Error('与 Claude 通信时出现问题。');
 }
 
 export async function askClaude(req: ProviderRequest): Promise<unknown> {
@@ -56,13 +56,13 @@ export async function askClaude(req: ProviderRequest): Promise<unknown> {
   }
 
   if (response.stop_reason === 'refusal') {
-    throw new Error('Claude could not help with that request. Try asking in a different way.');
+    throw new Error('Claude 无法处理该请求，请换一种方式提问。');
   }
   if (response.stop_reason === 'max_tokens') {
-    throw new Error('The answer got cut off. Try a narrower question.');
+    throw new Error('回复被截断了，请尝试更具体的问题。');
   }
   if (!response.parsed_output) {
-    throw new Error('Claude sent an answer Cleanly could not read. Please try again.');
+    throw new Error('Claude 返回的回复 Cleanly 无法读取，请重试。');
   }
   return response.parsed_output;
 }

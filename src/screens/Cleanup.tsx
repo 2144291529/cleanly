@@ -60,9 +60,9 @@ export default function Cleanup() {
     const extra = result.skipped.length
       ? ` · ${result.skipped.slice(0, 2).join(', ')}`
       : result.failed > 0
-        ? ` · ${result.failed} in use, skipped`
+        ? ` · ${result.failed} 个正在使用，已跳过`
         : '';
-    toast(`Freed ${formatBytes(result.freed)}${extra}`);
+    toast(`已释放 ${formatBytes(result.freed)}${extra}`);
   };
 
   const start = () => {
@@ -75,11 +75,11 @@ export default function Cleanup() {
 
   return (
     <div className="screen">
-      <ScreenHead title="Cleanup" sub="Caches, temp files and logs your apps rebuild on their own. Safe items are picked for you.">
+      <ScreenHead title="清理" sub="缓存、临时文件和日志已由应用自动重建。已为您勾选安全项。">
         <div className="fx-head-actions">
           <button type="button" className="btn small" onClick={() => void smartScan()} disabled={scanning || cleaning}>
             {scanning ? <span className="spinner" /> : <Icon name="scan" />}
-            {scanning ? 'Scanning' : 'Rescan'}
+            {scanning ? '扫描中' : '重新扫描'}
           </button>
         </div>
       </ScreenHead>
@@ -90,8 +90,8 @@ export default function Cleanup() {
             <span className="orb">
               <Icon name="broom" />
             </span>
-            <h3>Looking for junk</h3>
-            <p>{scanProg?.phase ?? 'Checking caches, temp folders and logs'}</p>
+            <h3>正在查找垃圾文件</h3>
+            <p>{scanProg?.phase ?? '正在检查缓存、临时文件夹和日志'}</p>
             <Progress value={scanProg && scanProg.total > 0 ? scanProg.done / scanProg.total : undefined} />
             {scanProg?.current && <div className="cur">{shortPath(scanProg.current, home)}</div>}
           </div>
@@ -100,9 +100,9 @@ export default function Cleanup() {
 
       {!junk && !scanning && (
         <section className="card-w rise">
-          <Empty icon="scan" title="No scan yet" text="Run a quick scan to see what can be cleaned.">
+          <Empty icon="scan" title="尚未扫描" text="快速扫描一下，看看有哪些可以清理。">
             <button type="button" className="btn primary" onClick={() => void smartScan()}>
-              <Icon name="scan" /> Scan now
+              <Icon name="scan" /> 立即扫描
             </button>
           </Empty>
         </section>
@@ -113,22 +113,22 @@ export default function Cleanup() {
           {scanning && (
             <div className="fx-strip">
               <span className="spinner" />
-              <span>{scanProg?.phase ?? 'Rescanning'}</span>
+              <span>{scanProg?.phase ?? '重新扫描中'}</span>
               <Progress value={scanProg && scanProg.total > 0 ? scanProg.done / scanProg.total : undefined} />
             </div>
           )}
           <div className="fx-panel-head">
-            <h2>What we found</h2>
+            <h2>扫描结果</h2>
             <span className="fx-count">
-              {cleanable.length} of {items.length} have something to clean
+              {cleanable.length} / {items.length} 项有可清理内容
             </span>
             <span className="grow" />
             <button type="button" className="fx-link" onClick={toggleAll} disabled={!cleanable.length || cleaning}>
-              {allOn ? 'Select none' : 'Select all'}
+              {allOn ? '取消全选' : '全选'}
             </button>
           </div>
           {cleanable.length === 0 && !scanning ? (
-            <Empty icon="check" title="All clean" text="Nothing to remove right now. Check back in a few days." />
+            <Empty icon="check" title="全部清理完毕" text="目前没有可移除的内容。过几天再来看看。" />
           ) : (
             <div className="list fx-list">
               {items.map((c) => {
@@ -152,12 +152,12 @@ export default function Cleanup() {
                       {perm && (
                         <span className="tag keep">
                           <Icon name="warning" />
-                          Permanent
+                          永久
                         </span>
                       )}
-                      {!empty && <span className={`tag ${c.safe ? 'safe' : 'review'}`}>{c.safe ? 'Safe' : 'Review'}</span>}
+                      {!empty && <span className={`tag ${c.safe ? 'safe' : 'review'}`}>{c.safe ? '安全' : '待确认'}</span>}
                     </div>
-                    <span className="size">{empty ? 'Clean' : formatBytes(c.size)}</span>
+                    <span className="size">{empty ? '无需清理' : formatBytes(c.size)}</span>
                   </label>
                 );
               })}
@@ -168,23 +168,23 @@ export default function Cleanup() {
 
       {junk && cleanable.length > 0 && (
         confirming ? (
-          <div className="fx-dock" role="alertdialog" aria-label="Confirm cleanup">
+          <div className="fx-dock" role="alertdialog" aria-label="确认清理">
             <span className={`chip-ico${hasPermanent ? ' warm' : ''}`}>
               <Icon name={hasPermanent ? 'warning' : 'broom'} />
             </span>
             <div className="grow">
-              <div className="fx-dock-q">Delete {formatBytes(total)} of caches and junk?</div>
+              <div className="fx-dock-q">确定删除 {formatBytes(total)} 的缓存和垃圾文件？</div>
               {hasPermanent ? (
-                <div className="fx-dock-note warn">Includes emptying the Trash. That part can't be undone.</div>
+                <div className="fx-dock-note warn">包括清空回收站。此操作无法撤销。</div>
               ) : (
-                <div className="fx-dock-note">They rebuild themselves when apps need them.</div>
+                <div className="fx-dock-note">应用需要时会自动重建。</div>
               )}
             </div>
             <button type="button" className="btn ghost" onClick={() => setConfirming(false)}>
-              Cancel
+              取消
             </button>
             <button type="button" className={`btn primary${hasPermanent ? ' danger' : ''}`} onClick={() => void run()} autoFocus>
-              Delete
+              删除
             </button>
           </div>
         ) : (
@@ -192,17 +192,17 @@ export default function Cleanup() {
             <div className="grow">
               <div className="fx-dock-num">
                 {big.value}
-                <small>{big.unit} selected</small>
+                <small>{big.unit} 已选</small>
               </div>
               <div className="fx-dock-sub">
                 {cleaning
-                  ? cleanProg?.phase ?? 'Cleaning'
-                  : `${chosen.length} ${chosen.length === 1 ? 'category' : 'categories'} · ${files.toLocaleString()} items`}
+                  ? cleanProg?.phase ?? '清理中'
+                  : `${chosen.length} ${chosen.length === 1 ? '个类别' : '个类别'} · ${files.toLocaleString()} 个项目`}
               </div>
             </div>
             {cleaning && <Progress value={cleanProg && cleanProg.total > 0 ? cleanProg.done / cleanProg.total : undefined} />}
             <CleanButton
-              label={cleaning ? 'Cleaning' : done && !chosen.length ? 'Done' : 'Clean'}
+              label={cleaning ? '清理中' : done && !chosen.length ? '完成' : '清理'}
               sub={formatBytes(total)}
               busy={cleaning}
               done={done && !chosen.length}

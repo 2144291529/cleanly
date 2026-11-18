@@ -3,6 +3,7 @@ import { promises as fsp, type Dirent } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import type { CleanResult, IconName, JunkCategory, ScanProgress } from '../../shared/types';
+import { listDisks, systemMount } from './disk';
 import { deleteCacheEntry, isSafeUserPath, trashPaths } from './trash';
 import {
   DAY_MS,
@@ -38,6 +39,11 @@ interface Def {
   keepNewerThanMs?: number;
   /** Shown when nothing could be removed because of permissions. */
   adminNote?: string;
+  /**
+   * Override the walker entry budget for folders that can hold hundreds of thousands of files
+   * (developer caches). The reported size is then an estimate; only used for review-only categories.
+   */
+  maxEntries?: number;
 }
 
 const isWin = process.platform === 'win32';
@@ -123,8 +129,8 @@ function winDefs(): Def[] {
   return [
     {
       id: 'win-temp',
-      name: 'Temporary files',
-      description: 'Leftovers from installers and apps. Anything touched in the last day is kept.',
+      name: '临时文件',
+      description: '安装程序和应用留下的残留文件。最近一天内使用过的文件会被保留。',
       icon: 'file',
       safe: true,
       kind: 'cache',
@@ -133,8 +139,8 @@ function winDefs(): Def[] {
     },
     {
       id: 'win-system-temp',
-      name: 'Windows temp',
-      description: 'System-wide temporary files. Files Windows still uses are skipped.',
+      name: '系统临时文件',
+      description: '系统范围内的临时文件。Windows 仍在使用的文件会被跳过。',
       icon: 'gear',
       safe: true,
       kind: 'cache',
@@ -143,8 +149,8 @@ function winDefs(): Def[] {
     },
     {
       id: 'browser-cache',
-      name: 'Browser caches',
-      description: 'Chrome, Edge, Firefox and others rebuild these as you browse. Logins and history stay.',
+      name: '浏览器缓存',
+      description: 'Chrome、Edge、Firefox 等浏览器会在浏览时重建这些缓存。登录信息和历史记录会保留。',
       icon: 'globe',
       safe: true,
       kind: 'cache',
@@ -167,8 +173,8 @@ function winDefs(): Def[] {
     },
     {
       id: 'app-cache',
-      name: 'App caches',
-      description: 'Discord, Slack, Teams, Spotify, VS Code and Zoom rebuild these on their own.',
+      name: '应用缓存',
+      description: 'Discord、Slack、Teams、Spotify、VS Code 和 Zoom 会自行重建这些缓存。',
       icon: 'apps',
       safe: true,
       kind: 'cache',
@@ -191,8 +197,8 @@ function winDefs(): Def[] {
     },
     {
       id: 'crash-reports',
-      name: 'Crash dumps & error reports',
-      description: 'Memory dumps and error reports apps left behind after a crash.',
+      name: '崩溃转储与错误报告',
+      description: '应用崩溃后留下的内存转储和错误报告。',
       icon: 'warning',
       safe: true,
       kind: 'cache',
@@ -207,21 +213,22 @@ function winDefs(): Def[] {
     },
     {
       id: 'win-update',
-      name: 'Windows Update downloads',
-      description: 'Update installers Windows already used. Removing them needs admin rights.',
+      name: 'Windows 更新下载',
+      description: 'Windows 已使用过的更新安装程序。删除它们需要管理员权限。',
       icon: 'history',
       safe: false,
       kind: 'cache',
-      adminNote: 'Windows Update files need admin rights, so they were skipped',
+      adminNote: 'Windows 更新文件需要管理员权限，因此已跳过',
       roots: () => dirs([path.join(winDir, 'SoftwareDistribution', 'Download')]),
     },
     {
       id: 'dev-cache',
-      name: 'Developer caches',
-      description: 'npm, pip, Yarn, pnpm and Gradle caches. The next install downloads packages again.',
+      name: '开发者缓存',
+      description: 'npm、pip、Yarn、pnpm 和 Gradle 的缓存。下次安装时会重新下载软件包。超大目录的显示大小为估算值。',
       icon: 'code',
       safe: false,
       kind: 'cache',
+      maxEntries: 60_000,
       roots: () =>
         dirs([
           path.join(L, 'npm-cache'),
@@ -235,13 +242,13 @@ function winDefs(): Def[] {
     },
     {
       id: 'recycle-bin',
-      name: 'Recycle Bin',
-      description: 'Files you already deleted. Emptying it removes them permanently.',
+      name: '回收站',
+      description: '你已删除的文件。清空回收站会永久删除它们。',
       icon: 'trash',
       safe: false,
       kind: 'recycle',
     },
-    oldDownloadsDef('Recycle Bin'),
+    oldDownloadsDef('回收站'),
   ];
 }
 
@@ -265,8 +272,8 @@ function macDefs(): Def[] {
   return [
     {
       id: 'mac-caches',
-      name: 'User caches',
-      description: 'Apps keep these to load faster and rebuild them when needed.',
+      name: '用户缓存',
+      description: '应用保留这些文件以加快加载速度，并在需要时重建它们。',
       icon: 'layers',
       safe: true,
       kind: 'cache',
@@ -274,8 +281,8 @@ function macDefs(): Def[] {
     },
     {
       id: 'mac-logs',
-      name: 'Logs',
-      description: 'Diagnostic logs apps write over time. Nothing needs them to run.',
+      name: '日志',
+      description: '应用随时间写入的诊断日志。应用运行不需要它们。',
       icon: 'doc',
       safe: true,
       kind: 'cache',
@@ -283,8 +290,8 @@ function macDefs(): Def[] {
     },
     {
       id: 'browser-cache',
-      name: 'Browser caches',
-      description: 'Chrome, Safari, Firefox and others rebuild these as you browse. Logins and history stay.',
+      name: '浏览器缓存',
+      description: 'Chrome、Safari、Firefox 等浏览器会在浏览时重建这些缓存。登录信息和历史记录会保留。',
       icon: 'globe',
       safe: true,
       kind: 'cache',
@@ -314,8 +321,8 @@ function macDefs(): Def[] {
     },
     {
       id: 'xcode',
-      name: 'Xcode leftovers',
-      description: 'DerivedData, old device support files and simulator caches. Xcode rebuilds them when needed.',
+      name: 'Xcode 残留',
+      description: 'DerivedData、旧的设备支持文件和模拟器缓存。Xcode 会在需要时重建它们。',
       icon: 'chip',
       safe: false,
       kind: 'cache',
@@ -328,11 +335,12 @@ function macDefs(): Def[] {
     },
     {
       id: 'dev-cache',
-      name: 'Developer caches',
-      description: 'npm, Yarn, pnpm and pip caches. The next install downloads packages again.',
+      name: '开发者缓存',
+      description: 'npm、Yarn、pnpm 和 pip 的缓存。下次安装时会重新下载软件包。超大目录的显示大小为估算值。',
       icon: 'code',
       safe: false,
       kind: 'cache',
+      maxEntries: 60_000,
       roots: () =>
         dirs([
           path.join(home(), '.npm', '_cacache'),
@@ -345,14 +353,14 @@ function macDefs(): Def[] {
     },
     {
       id: 'trash',
-      name: 'Trash',
-      description: 'Files you already deleted. Emptying it removes them permanently.',
+      name: '废纸篓',
+      description: '你已删除的文件。清空废纸篓会永久删除它们。',
       icon: 'trash',
       safe: false,
       kind: 'cache',
       roots: () => dirs([path.join(home(), '.Trash')]),
     },
-    oldDownloadsDef('Trash'),
+    oldDownloadsDef('废纸篓'),
   ];
 }
 
@@ -360,8 +368,8 @@ function linuxDefs(): Def[] {
   return [
     {
       id: 'linux-cache',
-      name: 'User caches',
-      description: 'Apps keep these to load faster and rebuild them when needed.',
+      name: '用户缓存',
+      description: '应用保留这些文件以加快加载速度，并在需要时重建它们。',
       icon: 'layers',
       safe: true,
       kind: 'cache',
@@ -369,23 +377,23 @@ function linuxDefs(): Def[] {
     },
     {
       id: 'trash',
-      name: 'Trash',
-      description: 'Files you already deleted. Emptying it removes them permanently.',
+      name: '废纸篓',
+      description: '你已删除的文件。清空废纸篓会永久删除它们。',
       icon: 'trash',
       safe: false,
       kind: 'cache',
       // info/ holds the .trashinfo records; leaving them would show ghost items in the file manager.
       roots: () => dirs([path.join(home(), '.local', 'share', 'Trash', 'files'), path.join(home(), '.local', 'share', 'Trash', 'info')]),
     },
-    oldDownloadsDef('Trash'),
+    oldDownloadsDef('废纸篓'),
   ];
 }
 
 function oldDownloadsDef(binName: string): Def {
   return {
     id: 'old-downloads',
-    name: 'Old downloads',
-    description: `Files in Downloads you have not touched for 90+ days. They go to the ${binName}, so you can restore them.`,
+    name: '旧下载文件',
+    description: `下载文件夹中超过 90 天未动过的文件。它们会被移入${binName}，因此你可以恢复它们。`,
     icon: 'down',
     safe: false,
     kind: 'downloads',
@@ -417,7 +425,7 @@ async function measureCache(def: Def, roots: Root[], onTick: (current: string) =
     let bytes = 0;
     const top = (p: string) => lower(path.relative(root.path, p).split(path.sep)[0]);
     await walk(root.path, {
-      maxEntries: SCAN_CAP,
+      maxEntries: def.maxEntries ?? SCAN_CAP,
       skipDir: (_p, name, depth) => depth === 1 && excluded.has(lower(name)),
       onDir: (p, depth) => {
         if (depth === 1 && cutoff === undefined) entries.add(top(p));
@@ -469,12 +477,16 @@ async function findOldDownloads(): Promise<{ paths: string[]; size: number; fold
         return;
       }
       if (!st.isDirectory()) return;
-      let fresh = touched(st) >= cutoff;
+      // A folder whose own mtime is recent has already been touched recently: nothing inside can be
+      // "old downloads", so skip the (potentially huge) recursive walk entirely. This is the common
+      // case for active download folders and was the single slowest part of the junk scan.
+      if (touched(st) >= cutoff) return;
+      let fresh = false;
       let size = 0;
       const ctrl = new AbortController();
       const stats = await walk(p, {
         signal: ctrl.signal,
-        maxEntries: 200_000,
+        maxEntries: 50_000,
         onFile: (f) => {
           size += f.size;
           if (touched(f) >= cutoff) {
@@ -497,18 +509,6 @@ async function findOldDownloads(): Promise<{ paths: string[]; size: number; fold
   return result;
 }
 
-const RECYCLE_MEASURE = [
-  "$ErrorActionPreference='SilentlyContinue'",
-  '$n=0; $t=[double]0',
-  'foreach($i in (New-Object -ComObject Shell.Application).NameSpace(10).Items()){',
-  '  $n++',
-  "  $v=$i.ExtendedProperty('System.Size')",
-  '  if($v -and [double]$v -gt 0){ $t+=[double]$v }',
-  '  else { $m=(Get-ChildItem -LiteralPath $i.Path -Recurse -Force -File | Measure-Object -Property Length -Sum).Sum; if($m){ $t+=[double]$m } }',
-  '}',
-  '"$n $t"',
-].join('\n');
-
 function powershell(script: string, timeout: number): Promise<string> {
   return new Promise((resolve, reject) => {
     execFile(
@@ -520,21 +520,46 @@ function powershell(script: string, timeout: number): Promise<string> {
   });
 }
 
+/**
+ * Recycle Bin size measured with the regular fs walker. The previous implementation ran a PowerShell
+ * COM enumeration that called ExtendedProperty per item and fell back to a recursive Get-ChildItem each
+ * time — about 10 seconds on a full bin, and it was the single slowest part of the startup scan.
+ * Deleted payloads sit under each user's SID folder: `$R*` are the items, `$I*` their tiny metadata records.
+ */
 async function measureRecycleBin(): Promise<{ count: number; size: number }> {
+  let mounts: string[];
   try {
-    const out = (await powershell(RECYCLE_MEASURE, 90_000)).trim().split(/\s+/);
-    const count = Number(out[out.length - 2]);
-    const size = Number(out[out.length - 1]);
-    return { count: Number.isFinite(count) ? count : 0, size: Number.isFinite(size) ? size : 0 };
+    mounts = (await listDisks()).map((d) => d.mount);
   } catch {
-    return { count: 0, size: 0 };
+    mounts = [systemMount()];
   }
+  let count = 0;
+  let size = 0;
+  for (const mount of mounts) {
+    const bin = path.join(mount, '$Recycle.Bin');
+    if (!(await isRealDir(bin))) continue;
+    await walk(bin, {
+      maxEntries: 500_000,
+      onDir: (p, depth) => {
+        if (depth === 2 && path.basename(p).startsWith('$R')) count++;
+      },
+      onFile: (f) => {
+        if (f.depth === 2) {
+          const base = path.basename(f.path);
+          if (base.startsWith('$I')) return; // metadata record, not payload
+          if (base.startsWith('$R')) count++;
+        }
+        size += f.size;
+      },
+    });
+  }
+  return { count, size };
 }
 
 async function measure(def: Def, onTick: (current: string) => void): Promise<Measured> {
   if (def.kind === 'recycle') {
     const r = await measureRecycleBin();
-    return { size: r.size, count: r.count, locations: ['Recycle Bin'] };
+    return { size: r.size, count: r.count, locations: ['回收站'] };
   }
   if (def.kind === 'downloads') {
     const r = await findOldDownloads();
@@ -574,7 +599,7 @@ export async function scanJunk(progress: Progress): Promise<JunkCategory[]> {
       // a category that cannot be measured is simply not offered
     }
   }
-  progress({ task: 'junk', phase: 'Done', done: defs.length, total: defs.length });
+  progress({ task: 'junk', phase: '完成', done: defs.length, total: defs.length });
   return found.sort((a, b) => b.size - a.size);
 }
 
@@ -650,7 +675,7 @@ export async function cleanJunk(ids: unknown, progress: Progress): Promise<Clean
         result.removed += r.removed;
         if (!r.ok) {
           result.failed++;
-          result.skipped.push('Some Recycle Bin items could not be removed');
+          result.skipped.push('部分回收站项目无法删除');
         }
         continue;
       }
@@ -660,8 +685,8 @@ export async function cleanJunk(ids: unknown, progress: Progress): Promise<Clean
         result.freed += r.freed;
         result.removed += r.removed;
         result.failed += r.failed;
-        result.skipped.push(...r.skipped.map((s) => `Old downloads: ${s}`));
-        if (r.removed > 0) result.skipped.push(`Old downloads went to the ${isWin ? 'Recycle Bin' : 'Trash'}, so you can restore them`);
+        result.skipped.push(...r.skipped.map((s) => `旧下载文件：${s}`));
+        if (r.removed > 0) result.skipped.push(`旧下载文件已移至${isWin ? '回收站' : '废纸篓'}，因此你可以恢复它们`);
         continue;
       }
       const tally: Tally = { freed: 0, removed: 0, locked: 0, denied: 0, refused: 0 };
@@ -675,13 +700,13 @@ export async function cleanJunk(ids: unknown, progress: Progress): Promise<Clean
       else deniedOther += tally.denied;
     } catch {
       result.failed++;
-      result.skipped.push(`${def.name} could not be cleaned`);
+      result.skipped.push(`${def.name} 无法清理`);
     }
   }
 
-  if (locked) result.skipped.unshift(`${fmt(locked)} ${locked === 1 ? 'file' : 'files'} in use`);
-  if (deniedOther) result.skipped.push(`${fmt(deniedOther)} protected ${deniedOther === 1 ? 'file' : 'files'} left alone`);
-  if (refused) result.skipped.push(`${fmt(refused)} linked ${refused === 1 ? 'item' : 'items'} skipped for safety`);
-  progress({ task: 'clean', phase: 'Done', done: defs.length, total: defs.length });
+  if (locked) result.skipped.unshift(`${fmt(locked)} ${locked === 1 ? '个文件' : '个文件'} 正在使用中`);
+  if (deniedOther) result.skipped.push(`${fmt(deniedOther)} 个受保护的${deniedOther === 1 ? '文件' : '文件'}未作处理`);
+  if (refused) result.skipped.push(`${fmt(refused)} 个链接${refused === 1 ? '项目' : '项目'}出于安全考虑已跳过`);
+  progress({ task: 'clean', phase: '完成', done: defs.length, total: defs.length });
   return result;
 }

@@ -68,7 +68,7 @@ export default function Apps() {
       } catch (e) {
         if (!quiet) {
           setFailed(true);
-          toast(e instanceof Error ? e.message : 'Could not list your apps', 'err');
+          toast(e instanceof Error ? e.message : '无法列出您的应用', 'err');
         }
       } finally {
         setLoading(false);
@@ -99,13 +99,13 @@ export default function Apps() {
     setBusy(app.id);
     try {
       const res = await api.uninstallApp(app.id);
-      toast(res.message || (res.ok ? `${app.name} removed` : `Could not uninstall ${app.name}`), res.ok ? 'ok' : 'err');
+      toast(res.message || (res.ok ? `${app.name} 已移除` : `无法卸载 ${app.name}`), res.ok ? 'ok' : 'err');
       if (res.ok) {
         void load(true);
         void refreshDisk();
       }
     } catch (e) {
-      toast(e instanceof Error ? e.message : `Could not uninstall ${app.name}`, 'err');
+      toast(e instanceof Error ? e.message : `无法卸载 ${app.name}`, 'err');
     } finally {
       setBusy(null);
     }
@@ -119,14 +119,14 @@ export default function Apps() {
 
   return (
     <div className="screen sy-screen">
-      <ScreenHead title="Applications" sub="Everything installed on this computer. Remove what you no longer use with the app's own uninstaller.">
+      <ScreenHead title="应用程序" sub="此电脑上所有已安装的应用。请使用应用自带的卸载程序移除不再需要的应用。">
         {apps && (
           <div className="sy-head-meta">
-            <b>{apps.length}</b> apps
+            <b>{apps.length}</b> 个应用
             {total > 0 && (
               <>
                 <span>·</span>
-                <b>{formatBytes(total)}</b> in total
+                <b>{formatBytes(total)}</b> 合计
               </>
             )}
           </div>
@@ -139,20 +139,20 @@ export default function Apps() {
           <input
             className="input"
             type="search"
-            placeholder="Search by name or publisher"
+            placeholder="按名称或发布者搜索"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            aria-label="Search apps"
+            aria-label="搜索应用"
           />
         </label>
         <Segmented<Sort>
-          label="Sort apps"
+          label="应用排序"
           value={sort}
           onChange={setSort}
           options={[
-            { value: 'name', label: 'Name' },
-            { value: 'size', label: 'Size' },
-            { value: 'used', label: 'Last used' },
+            { value: 'name', label: '名称' },
+            { value: 'size', label: '大小' },
+            { value: 'used', label: '最近使用' },
           ]}
         />
       </div>
@@ -161,26 +161,26 @@ export default function Apps() {
         {loading && !apps ? (
           <div className="sy-center">
             <span className="spinner" />
-            Gathering your apps
+            正在收集您的应用
           </div>
         ) : failed && !apps ? (
-          <Empty icon="warning" title="Could not list your apps" text="Something blocked the check. Try again in a moment.">
+          <Empty icon="warning" title="无法列出您的应用" text="检查过程受到阻碍，请稍后重试。">
             <button type="button" className="btn" onClick={() => void load()}>
-              Try again
+              重试
             </button>
           </Empty>
         ) : shown.length === 0 ? (
           <Empty
             icon={query ? 'search' : 'apps'}
-            title={query ? 'No matches' : 'No apps found'}
-            text={query ? `Nothing matches "${query.trim()}".` : 'We could not find installed apps on this computer.'}
+            title={query ? '未找到匹配项' : '未找到应用'}
+            text={query ? `没有与“${query.trim()}”匹配的内容。` : '未能在此电脑上找到已安装的应用。'}
           />
         ) : (
           <>
             {query.trim() && (
               <div className="sy-sec-head">
                 <span className="sy-count">
-                  {shown.length} of {apps?.length ?? 0} apps
+                  {shown.length} / {apps?.length ?? 0} 个应用
                 </span>
               </div>
             )}
@@ -191,27 +191,27 @@ export default function Apps() {
                   <div className="grow">
                     <div className="title">{app.name}</div>
                     <div className="sub">
-                      {[app.publisher, app.version && `v${app.version}`].filter(Boolean).join(' · ') || 'Unknown publisher'}
+                      {[app.publisher, app.version && `v${app.version}`].filter(Boolean).join(' · ') || '未知发布者'}
                     </div>
                   </div>
                   <div className="sy-meta">
                     <span className="size">{app.size ? formatBytes(app.size) : '—'}</span>
-                    {app.lastUsed ? <small>Used {timeAgo(app.lastUsed)}</small> : null}
+                    {app.lastUsed ? <small>最近使用：{timeAgo(app.lastUsed)}</small> : null}
                   </div>
                   <div className="sy-act">
                     {busy === app.id ? (
                       <span className="sy-lock">
                         <span className="spinner" />
-                        Starting uninstaller
+                        正在启动卸载程序
                       </span>
                     ) : confirming === app.id ? (
                       <div className="sy-confirm">
-                        <span>Uninstall?</span>
+                        <span>卸载？</span>
                         <button type="button" className="btn small ghost" onClick={() => setConfirming(null)}>
-                          Cancel
+                          取消
                         </button>
                         <button type="button" className="btn small danger" onClick={() => void uninstall(app)}>
-                          Uninstall
+                          卸载
                         </button>
                       </div>
                     ) : app.canUninstall ? (
@@ -222,12 +222,12 @@ export default function Apps() {
                         onClick={() => setConfirming(app.id)}
                       >
                         <Icon name="trash" />
-                        Uninstall
+                        卸载
                       </button>
                     ) : (
-                      <span className="sy-lock" title="This app is part of the system or managed elsewhere">
+                      <span className="sy-lock" title="此应用是系统组成部分或由其他方式管理">
                         <Icon name="lock" />
-                        Built in
+                        系统内置
                       </span>
                     )}
                   </div>
