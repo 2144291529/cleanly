@@ -15,7 +15,7 @@ Cleanly 会找出缓存、临时文件和早被遗忘的下载，把空间到底
 
 ### 一、完整简体中文化
 
-界面与提示全部中文化，共 **36 个文件**改动：
+界面与提示全部中文化。与上游 `main` 相比共 **36 个文件**变动，其中 5 个（`electron/boot.ts`、`electron/main.ts`、`electron/services/junk.ts`、`electron/services/disk.ts`、`src/screens/SmartScan.tsx`）是性能优化，见下一节。
 
 | 范围 | 内容 |
 |---|---|
